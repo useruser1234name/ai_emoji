@@ -1,0 +1,4 @@
+# PowerShell scripts: keep CRLF, treat as text
+*.ps1 text eol=crlf
+*.json text eol=lf
+*.md text eol=lf

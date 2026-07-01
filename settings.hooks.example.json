@@ -1,0 +1,65 @@
+{
+  "_comment": "이 파일의 hooks 블록을 ~/.claude/settings.json 에 병합하세요. 이미 settings.json 이 있으면 최상위 객체 안에 \"hooks\": { ... } 만 추가하면 됩니다. 경로는 %USERPROFILE% 를 씁니다(윈도우 셸에서 자동 확장). 확장이 안 되면 전체 절대경로(C:\\Users\\사용자명\\.claude\\mascot\\...)로 바꾸세요.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -Command \"Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','%USERPROFILE%\\.claude\\mascot\\mascot.ps1'\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\mascot\\hooks\\on-prompt.ps1\"" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\mascot\\hooks\\on-pretool.ps1\"" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\mascot\\hooks\\on-accept.ps1\"" }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\mascot\\hooks\\on-error.ps1\"" }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\mascot\\hooks\\on-perm.ps1\"" }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\mascot\\hooks\\on-perm.ps1\"" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\mascot\\hooks\\on-stop.ps1\"" }
+        ]
+      }
+    ]
+  }
+}

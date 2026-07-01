@@ -1,0 +1,18 @@
+# --- 런타임 상태 파일 (자동 생성) ---
+state.txt
+pending.flag
+
+# --- 사용자 이미지/움짤 (저작권: 각자 로컬에 추가) ---
+# 실제 캐릭터 이미지는 저작권 때문에 커밋하지 않습니다.
+images/*
+!images/README.txt
+!images/.gitkeep
+
+# --- 백업 폴더 ---
+**/_*_backup/
+
+# --- OS / 에디터 ---
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
