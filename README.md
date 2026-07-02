@@ -200,6 +200,37 @@ images/<상태>/ 폴더(랜덤)  →  <상태>.gif → <상태>.png → <상태>
 
 ---
 
+## 🎭 페르소나 — 세션마다 다른 말투/캐릭터
+
+여러 터미널에서 **세션마다 다른 캐릭터·말투**를 쓰고 싶다면 "페르소나"를 만드세요.
+페르소나 = `personas/<이름>/` 폴더 하나 (자체 `config.json` + `images/`).
+
+```
+personas/
+├─ haewon/
+│   ├─ config.json      # 이 캐릭터의 말투/이모지/크기
+│   └─ images/<상태>/   # 이 캐릭터의 상태별 사진
+└─ kurisu/
+    ├─ config.json
+    └─ images/...
+```
+
+**배정 방식**
+- **기본: 랜덤** — 새 세션(터미널)마다 `personas/` 중 하나를 무작위로.
+- **수동 지정** — 특정 터미널에서 아래처럼 하면 그 창만 고정:
+  ```powershell
+  $env:MASCOT_PERSONA = "kurisu"   # 이 터미널만 크리스로
+  claude
+  ```
+- `personas/` 가 없거나 지정한 이름을 못 찾으면 → 루트 `config.json` + `images/` 사용(기존 동작).
+- 페르소나는 **`mascot.ps1` 실행 시점에만** 결정 → hook 은 그대로. 상태는 이미 세션별.
+
+**새 페르소나 만들기**
+```powershell
+powershell -ExecutionPolicy Bypass -File make-persona.ps1 -Name taiga
+```
+→ `personas/taiga/` 생성(config 템플릿 복사). `config.json` 말투 수정 + `images/<상태>/` 에 사진 넣으면 끝. 재시작하면 랜덤 후보에 포함됩니다.
+
 ## 🗂️ 폴더 구조
 
 ```
@@ -208,10 +239,12 @@ ai_emoji/
 ├─ LICENSE
 ├─ .gitignore
 ├─ install.ps1                    # ~/.claude/mascot 로 설치
+├─ make-persona.ps1               # 새 페르소나(캐릭터/말투) 폴더 생성
 ├─ settings.hooks.example.json    # settings.json 에 병합할 hooks
-├─ mascot.ps1                     # 마스코트 본체 (WPF 창)
+├─ mascot.ps1                     # 마스코트 본체 (WPF 창, -Persona 지원)
 ├─ set-state.ps1                  # 상태 기록 도우미
-├─ config.json                    # 대사·표정·크기 설정 (기본: 츤데레 테마)
+├─ config.json                    # 기본 말투 설정 (페르소나 없을 때 폴백)
+├─ personas/                      # (선택) 세션별 캐릭터 프리셋 — 개인 파일, 커밋 제외
 ├─ hooks/                         # Claude Code hooks 스크립트
 │   ├─ _sid.ps1              # 공용: stdin JSON 에서 세션 ID 추출
 │   ├─ on-session-start.ps1 # SessionStart → 세션별 마스코트 실행

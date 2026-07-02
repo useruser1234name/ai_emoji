@@ -3,15 +3,19 @@
 # 이미지: images\<상태>.gif|png  또는  images\character.gif|png
 # config.json 을 저장하면 즉시 반영됩니다. 사진/움짤 교체도 실시간 반영.
 
-param([string]$SessionId = "default")
+param([string]$SessionId = "default", [string]$Persona = "")
 
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
 Add-Type -AssemblyName WindowsBase
 
 $script:base      = Join-Path $env:USERPROFILE ".claude\mascot"
-$script:imgDir    = Join-Path $script:base "images"
-$script:cfgFile   = Join-Path $script:base "config.json"
+
+# 페르소나(말투/캐릭터 프리셋) 경로 해석 — 지정 없거나 못 찾으면 루트로 폴백
+$pName = ($Persona -replace '[^A-Za-z0-9_-]','')
+$pDir  = if ($pName) { Join-Path $script:base ("personas\" + $pName) } else { "" }
+$script:imgDir  = if ($pDir -and (Test-Path (Join-Path $pDir "images")))      { Join-Path $pDir "images" }      else { Join-Path $script:base "images" }
+$script:cfgFile = if ($pDir -and (Test-Path (Join-Path $pDir "config.json"))) { Join-Path $pDir "config.json" } else { Join-Path $script:base "config.json" }
 
 # 세션별 식별자 (터미널마다 독립 마스코트)
 $script:sid = ($SessionId -replace '[^A-Za-z0-9_-]','_')

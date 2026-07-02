@@ -1,12 +1,18 @@
 # --- 런타임 상태 파일 (자동 생성) ---
 state.txt
+state-*.txt
 pending.flag
+pending-*.flag
+slots/
 
 # --- 사용자 이미지/움짤 (저작권: 각자 로컬에 추가) ---
 # 실제 캐릭터 이미지는 저작권 때문에 커밋하지 않습니다.
 images/*
 !images/README.txt
 !images/.gitkeep
+
+# --- 페르소나 (개인 캐릭터/말투/이미지 프리셋) ---
+personas/
 
 # --- 백업 폴더 ---
 **/_*_backup/
