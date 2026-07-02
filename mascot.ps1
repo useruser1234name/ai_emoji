@@ -228,6 +228,16 @@ function Update-Mascot([string]$state) {
     $emo = if ($epool -and $epool.Count -gt 0) { $epool[(Get-Random -Maximum $epool.Count)] } else { "🙂" }
     $script:emoText.Text = $emo
 
+    # 0) 상태 전용 폴더(images\<state>\)가 있으면 그 안에서 랜덤 (여러 표정)
+    $stateDir = Join-Path $script:imgDir $state
+    if (Test-Path $stateDir) {
+        $imgs = @(Get-ChildItem $stateDir -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match '\.(gif|png|jpg|jpeg)$' })
+        if ($imgs.Count -gt 0) {
+            $pick = $imgs[(Get-Random -Maximum $imgs.Count)].FullName
+            if (Show-Media $pick) { $script:emoBubble.Visibility = 'Visible'; return }
+        }
+    }
+
     $cands = @(
         (Join-Path $script:imgDir "$state.gif"),  (Join-Path $script:imgDir "$state.png"),
         (Join-Path $script:imgDir "$state.jpg"),   (Join-Path $script:imgDir "$state.jpeg"),
