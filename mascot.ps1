@@ -3,18 +3,40 @@
 # 이미지: images\<상태>.gif|png  또는  images\character.gif|png
 # config.json 을 저장하면 즉시 반영됩니다. 사진/움짤 교체도 실시간 반영.
 
+param([string]$SessionId = "default")
+
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
 Add-Type -AssemblyName WindowsBase
 
 $script:base      = Join-Path $env:USERPROFILE ".claude\mascot"
-$script:stateFile = Join-Path $script:base "state.txt"
 $script:imgDir    = Join-Path $script:base "images"
 $script:cfgFile   = Join-Path $script:base "config.json"
 
-# ── 중복 실행 방지 (창은 하나만) ─────────────────────────────
-$script:mutex = New-Object System.Threading.Mutex($false, "ClaudeMascotSingleton_v1")
+# 세션별 식별자 (터미널마다 독립 마스코트)
+$script:sid = ($SessionId -replace '[^A-Za-z0-9_-]','_')
+if ([string]::IsNullOrWhiteSpace($script:sid)) { $script:sid = 'default' }
+$script:stateFile = Join-Path $script:base ("state-" + $script:sid + ".txt")
+
+# ── 같은 세션 중복 실행만 방지 (세션마다 창 하나) ────────────
+$script:mutex = New-Object System.Threading.Mutex($false, ("ClaudeMascot_" + $script:sid))
 if (-not $script:mutex.WaitOne(0)) { exit }
+
+# ── 화면 슬롯 확보 (여러 마스코트가 안 겹치게 가로로 나란히) ─
+$script:slotsDir = Join-Path $script:base "slots"
+New-Item -ItemType Directory -Force $script:slotsDir | Out-Null
+$script:slot = 0
+$script:slotFile = $null
+for ($i = 0; $i -lt 24; $i++) {
+    $lf = Join-Path $script:slotsDir ("slot-" + $i + ".lock")
+    $free = $true
+    if (Test-Path $lf) {
+        $opid = (Get-Content $lf -Raw -ErrorAction SilentlyContinue)
+        if ($opid) { $opid = $opid.Trim() }
+        if ($opid -match '^\d+$' -and (Get-Process -Id ([int]$opid) -ErrorAction SilentlyContinue)) { $free = $false }
+    }
+    if ($free) { Set-Content -Path $lf -Value "$PID"; $script:slot = $i; $script:slotFile = $lf; break }
+}
 
 # ── 기본값 ──────────────────────────────────────────────────
 function Set-Defaults {
@@ -147,13 +169,19 @@ function Apply-Appearance {
 # ── 위치: 우측 하단 ─────────────────────────────────────────
 function Set-Position {
     $wa = [System.Windows.SystemParameters]::WorkArea
-    $window.Left = $wa.Right  - $window.ActualWidth  - 20
+    $step = $script:charWidth + 70
+    $window.Left = $wa.Right  - $window.ActualWidth  - 20 - ($script:slot * $step)
     $window.Top  = $wa.Bottom - $window.ActualHeight - 10
 }
 $window.Add_Loaded({ Set-Position })
 $window.Add_SizeChanged({ Set-Position })
 $window.Add_MouseLeftButtonDown({ $window.DragMove() })
 $window.Add_MouseRightButtonUp({ $window.Close() })
+$window.Add_Closed({
+    if ($script:slotFile -and (Test-Path $script:slotFile)) { Remove-Item $script:slotFile -Force -ErrorAction SilentlyContinue }
+    if (Test-Path $script:stateFile) { Remove-Item $script:stateFile -Force -ErrorAction SilentlyContinue }
+    $window.Dispatcher.InvokeShutdown()   # Dispatcher.Run() 종료 → 프로세스 정상 종료
+})
 
 # ── GIF 애니메이션 ──────────────────────────────────────────
 $script:frames = $null
@@ -236,7 +264,9 @@ $timer.Add_Tick({
     $raw = if (Test-Path $script:stateFile) { (Get-Content $script:stateFile -Raw -Encoding UTF8) } else { "idle" }
     if ($raw -ne $script:last) {
         $script:last = $raw
-        Update-Mascot (($raw -split "`t")[0].Trim())
+        $st = ($raw -split "`t")[0].Trim()
+        if ($st -eq 'quit') { $window.Close(); return }
+        Update-Mascot $st
     }
 })
 $timer.Start()

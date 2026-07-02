@@ -1,13 +1,17 @@
 {
-  "_comment": "이 파일의 hooks 블록을 ~/.claude/settings.json 에 병합하세요. 이미 settings.json 이 있으면 최상위 객체 안에 \"hooks\": { ... } 만 추가하면 됩니다. 경로는 %USERPROFILE% 를 씁니다(윈도우 셸에서 자동 확장). 확장이 안 되면 전체 절대경로(C:\\Users\\사용자명\\.claude\\mascot\\...)로 바꾸세요.",
+  "_comment": "이 파일의 hooks 블록을 ~/.claude/settings.json 에 병합하세요. 이미 settings.json 이 있으면 최상위 객체 안에 \"hooks\": { ... } 만 추가하면 됩니다. 경로는 %USERPROFILE% 를 씁니다(윈도우 셸에서 자동 확장). 확장이 안 되면 전체 절대경로(C:\\Users\\사용자명\\.claude\\mascot\\...)로 바꾸세요. 세션마다(터미널마다) 마스코트가 하나씩 뜹니다.",
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -NoProfile -Command \"Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','%USERPROFILE%\\.claude\\mascot\\mascot.ps1'\""
-          }
+          { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\mascot\\hooks\\on-session-start.ps1\"" }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\mascot\\hooks\\on-session-end.ps1\"" }
         ]
       }
     ],

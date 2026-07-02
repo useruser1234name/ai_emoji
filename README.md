@@ -20,6 +20,7 @@ Claude Code의 **hooks**를 이용해, 지금 무슨 작업을 하는지(코딩 
 - 🧠 **작업 인식** — `git commit`, `git push`, `npm test`, `docker build` 등 **명령어를 실제로 읽어서** 구분
 - 🗣️ **기분 인식** — "고마워", "짜증나" 같은 **내 메시지 키워드**에 반응
 - ⚙️ **`config.json` 하나로 전부 커스텀** — 대사·표정·호칭·크기·속도, **저장 즉시 반영**(재시작 불필요)
+- 🖥️ **터미널마다 독립 마스코트** — 여러 Claude Code 세션을 켜면 캐릭터가 화면 하단에 **나란히 하나씩** 뜨고, 각자 자기 세션 상태만 반영
 - 🪟 항상 위에 뜨는 투명 창(테두리 없음), 드래그로 이동 / 우클릭으로 닫기
 
 > ⚠️ **이미지는 포함되어 있지 않습니다.** 저작권 때문에 캐릭터 이미지·사진은 리포에 넣지 않았어요.
@@ -110,7 +111,17 @@ Claude Code hooks가 상황을 감지해 `state.txt` 에 상태를 기록하면,
 > hook 이벤트 미지원 버전에서는 조용히 `done` 으로만 뜨고 오류는 없습니다.
 
 > **수동 테스트:** 아무 상태나 직접 띄워볼 수 있어요 →
-> `powershell -File "$env:USERPROFILE\.claude\mascot\set-state.ps1" rejected`
+> `powershell -File "$env:USERPROFILE\.claude\mascot\set-state.ps1" rejected preview`
+> (마지막 인자는 세션 ID. 미리 `mascot.ps1 -SessionId preview` 로 띄워두고 테스트하세요.)
+
+### 🖥️ 여러 터미널 = 여러 마스코트
+
+Claude Code 세션(터미널)마다 **독립된 마스코트**가 하나씩 뜹니다.
+
+- **SessionStart** hook이 세션의 고유 ID로 마스코트를 실행 → 여러 개를 켜면 화면 하단에 **가로로 나란히** 배치됩니다 (겹치지 않게 슬롯 자동 배정).
+- 각 마스코트는 자기 세션의 상태 파일(`state-<세션ID>.txt`)만 봐서 **서로 간섭하지 않습니다.**
+- **SessionEnd** hook이 그 세션의 마스코트만 닫습니다. (창 우클릭으로 수동 종료도 가능)
+- 같은 세션에서 중복 실행되지 않도록 세션별 mutex로 보호됩니다.
 
 ---
 
@@ -200,12 +211,15 @@ ai_emoji/
 ├─ set-state.ps1                  # 상태 기록 도우미
 ├─ config.json                    # 대사·표정·크기 설정 (기본: 츤데레 테마)
 ├─ hooks/                         # Claude Code hooks 스크립트
-│   ├─ on-prompt.ps1   # UserPromptSubmit → thinking/thanks/annoyed
-│   ├─ on-pretool.ps1  # PreToolUse → committing/pushing/testing/...
-│   ├─ on-accept.ps1   # PostToolUse → 권한 표시 해제
-│   ├─ on-perm.ps1     # Notification/PermissionRequest → waiting
-│   ├─ on-stop.ps1     # Stop → rejected 또는 done
-│   └─ on-error.ps1    # PostToolUseFailure → error
+│   ├─ _sid.ps1              # 공용: stdin JSON 에서 세션 ID 추출
+│   ├─ on-session-start.ps1 # SessionStart → 세션별 마스코트 실행
+│   ├─ on-session-end.ps1   # SessionEnd → 세션 마스코트 종료
+│   ├─ on-prompt.ps1        # UserPromptSubmit → thinking/thanks/annoyed
+│   ├─ on-pretool.ps1       # PreToolUse → committing/pushing/testing/...
+│   ├─ on-accept.ps1        # PostToolUse → 권한 표시 해제
+│   ├─ on-perm.ps1          # Notification/PermissionRequest → waiting
+│   ├─ on-stop.ps1          # Stop → rejected 또는 done
+│   └─ on-error.ps1         # PostToolUseFailure → error
 └─ images/                        # (비어있음) 여기에 이미지 추가
     └─ README.txt
 ```

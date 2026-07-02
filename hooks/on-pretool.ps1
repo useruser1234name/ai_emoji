@@ -1,12 +1,12 @@
-﻿# PreToolUse: 실행하려는 도구/명령을 보고 어울리는 상태를 고름
+﻿# PreToolUse: 실행하려는 도구/명령을 보고 어울리는 상태를 고름 (세션별)
 $base = Join-Path $env:USERPROFILE ".claude\mascot"
-$raw = (New-Object System.IO.StreamReader([Console]::OpenStandardInput(), [System.Text.Encoding]::UTF8)).ReadToEnd()
+. (Join-Path $PSScriptRoot '_sid.ps1')
+
 $tool = ''; $cmd = ''
-try {
-    $j = $raw | ConvertFrom-Json
-    $tool = [string]$j.tool_name
-    if ($j.tool_input) { $cmd = [string]$j.tool_input.command }
-} catch {}
+if ($HookJson) {
+    $tool = [string]$HookJson.tool_name
+    if ($HookJson.tool_input) { $cmd = [string]$HookJson.tool_input.command }
+}
 
 $state = ''
 if ($tool -eq 'Bash' -or $tool -eq 'PowerShell') {
@@ -21,4 +21,4 @@ if ($tool -eq 'Bash' -or $tool -eq 'PowerShell') {
 } elseif ('Write','Edit','MultiEdit','NotebookEdit' -contains $tool) {
     $state = 'coding'
 }
-if ($state) { & (Join-Path $base 'set-state.ps1') $state }
+if ($state) { & (Join-Path $base 'set-state.ps1') $state $Sid }
