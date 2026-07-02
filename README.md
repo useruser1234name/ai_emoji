@@ -152,6 +152,34 @@ images/<상태>/ 폴더(랜덤)  →  <상태>.gif → <상태>.png → <상태>
 
 ---
 
+## 📥 사진 확보 — 폴더 통째로 자동 분류 (가장 중요!)
+
+캐릭터 사진을 상태별로 하나하나 넣는 건 번거롭습니다. **표정 사진을 폴더에 모아두고** 아래 한 줄이면 파일명 키워드로 자동 분류·배치됩니다.
+
+```powershell
+# 미리보기(복사 안 함) — 어디로 갈지 확인
+powershell -File import-photos.ps1 -Persona haewon -Source "C:\내려받은\haewon" -DryRun
+
+# 실제 배치
+powershell -File import-photos.ps1 -Persona haewon -Source "C:\내려받은\haewon"
+
+# 배경 균일한 렌더는 투명 처리까지
+powershell -File import-photos.ps1 -Persona kurisu -Source "..." -RemoveBg
+```
+
+**파일명 키워드 → 상태** (일부)
+
+| 키워드 | 상태 | | 키워드 | 상태 |
+|---|---|---|---|---|
+| 서운·슬픔·삐짐·눈물 | rejected | | 자신·제법·비웃·어쩔 | pushing |
+| 놀란·당황·충격 | error | | 따봉·엄지 | committing |
+| 짜증·화남·분노·어이 | annoyed | | 집중·주먹·잼민 | coding |
+| 부끄·볼·하트·고마 | thanks | | 웃음·기분좋·행복·최고 | done |
+| 긴장·초조 | testing | | 그냥·무표정·보는 | idle |
+
+- 키워드 없는 파일은 `_unsorted/` 로 모아 알려줍니다 → 이름만 바꿔 다시 돌리거나 직접 옮기면 끝.
+- 💡 **웹 자동 다운로드는 차단·워터마크·배경 문제로 비추천.** 본인이 고른 표정 폴더가 제일 확실하고 예쁩니다.
+
 ## ⚙️ 커스텀 (`config.json`)
 
 `config.json` 을 저장하는 순간 **바로 반영**됩니다. 전체 필드:
@@ -240,6 +268,7 @@ ai_emoji/
 ├─ .gitignore
 ├─ install.ps1                    # ~/.claude/mascot 로 설치
 ├─ make-persona.ps1               # 새 페르소나(캐릭터/말투) 폴더 생성
+├─ import-photos.ps1              # 사진 폴더 → 파일명 키워드로 상태별 자동 분류
 ├─ settings.hooks.example.json    # settings.json 에 병합할 hooks
 ├─ mascot.ps1                     # 마스코트 본체 (WPF 창, -Persona 지원)
 ├─ set-state.ps1                  # 상태 기록 도우미
